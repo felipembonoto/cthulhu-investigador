@@ -2385,7 +2385,7 @@
     }
 
     function getEffectiveAttributes(char) {
-      const a = char.attributes;
+      const a = char.attributes || {};
       const age = Number(char.age) || 28;
       const pen = char.agePenaltyApplied || { FOR: 0, CON: 0, DES: 0 };
       const apaPenalty = getAgeRules(age).apaPenalty;
@@ -3826,6 +3826,7 @@
       }
 
       tbody.innerHTML = filtered.map(({ storeKey, record }) => {
+        try {
         const d = record.derivedSnapshot || computeDerived(record);
         const occName = record.displayOccupation || getDisplayOccupationName(record);
         const isTest = Boolean(record.isTestCharacter);
@@ -3848,6 +3849,9 @@
             </td>
           </tr>
         `;
+        } catch (err) {
+          return `<tr><td>${escapeHtml(record.ownerEmail || storeKey)}</td><td colspan="6" class="italic-note">Ficha com dados incompletos (${escapeHtml(err.message)}).</td></tr>`;
+        }
       }).join(``);
     }
 
