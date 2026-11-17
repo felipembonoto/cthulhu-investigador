@@ -2058,11 +2058,12 @@
     }
 
     async function apiListPlayers() {
-      const url = SCRIPT_URL + `?action=listPlayers`;
+      const url = SCRIPT_URL + `?action=listPlayers&email=` + encodeURIComponent(appState.currentUserEmail || ``);
       try {
         const resp = await fetch(url, { method: `GET` });
         if (!resp.ok) throw new Error(`HTTP ` + resp.status);
         const data = await resp.json();
+        if (!data || !Array.isArray(data.players)) throw new Error(`Resposta sem lista de jogadores`);
         updateSyncBadge(`online`);
         return { ok: true, data };
       } catch (err) {
@@ -3736,8 +3737,10 @@
         list.forEach((item) => {
           if (!item) return;
           const rec = item.character ? item.character : item;
-          if (!rec || (!rec.ownerEmail && !item.email)) return;
-          const emailKey = (rec.ownerEmail || item.email || ``).trim().toLowerCase();
+          if (!rec) return;
+          const emailKey = (rec.ownerEmail || item.email || item.jogador || ``).toString().trim().toLowerCase();
+          if (!emailKey) return;
+          if (!rec.ownerEmail) rec.ownerEmail = emailKey;
           if (!emailKey) return;
           const storeKey = rec.isTestCharacter ? `${emailKey}#test#${rec.id || Date.now()}` : emailKey;
           mergedMap[storeKey] = rec;
